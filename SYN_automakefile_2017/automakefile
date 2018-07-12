@@ -1,0 +1,101 @@
+#!/bin/bash
+
+if [ $# -ne 1 ]
+then
+    echo "too many or too few arguments"
+    exit 84
+fi
+
+if [ ! -f "$1" ]
+then
+    echo "file doesn't exist"
+    exit 84
+fi
+
+if [ ! -s "$1" ]
+then
+    echo "empty file"
+    exit 84
+fi
+
+
+
+MAKE_DIR=$(cat $1 | grep "PROJECT_DIR" | cut -d ';' -f 2)
+if [ ! -e $MAKE_DIR ]
+then
+    echo "no project"
+    exit 84
+fi
+MAKE_DIR+="/Makefile"
+
+echo 'SOURCES_DIR = ' | tr -d "\n" > $MAKE_DIR
+cat $1 | grep "SOURCES_DIR" | cut -d ';' -f 2 | tr -d "\n" | tr -d "//" >> $MAKE_DIR
+echo '/' >> $MAKE_DIR
+printf "\n" >> $MAKE_DIR
+
+echo 'CC = ' | tr -d "\n" >> $MAKE_DIR
+cat $1 | grep "CC" | cut -d ';' -f 2 >> $MAKE_DIR
+printf "\n" >> $MAKE_DIR
+
+echo 'SRC = ' | tr -d "\n" >> $MAKE_DIR
+printf "\t" | tr -d "\n" >> $MAKE_DIR
+cat $1 | grep "\.c" | cut -d ';' -f 1 | sed -re 's/ /\t\\\n\t/g' >> $MAKE_DIR
+printf "\n" >> $MAKE_DIR
+
+echo 'OBJ = $(addprefix $(SOURCES_DIR),$(SRC:.c=.o))' >> $MAKE_DIR
+printf "\n" >> $MAKE_DIR
+
+echo 'CFLAGS = ' | tr -d "\n" >> $MAKE_DIR
+echo "-I./" | tr -d "\n" >> $MAKE_DIR
+cat $1 | grep "HEADERS_DIR" | cut -d ';' -f 2 | tr -d "\n" >> $MAKE_DIR
+echo '/' | tr -d "\n" >> $MAKE_DIR
+echo ' ' | tr -d "\n" >> $MAKE_DIR
+cat $1 | grep "CFLAGS" | cut -d ';' -f 2 >> $MAKE_DIR
+printf "\n" >> $MAKE_DIR
+
+echo 'LDFLAGS = ' | tr -d "\n" >> $MAKE_DIR
+cat $1 | grep "LDFLAGS" | cut -d ';' -f 2 >> $MAKE_DIR
+printf "\n" >> $MAKE_DIR
+
+echo 'LIB = ' | tr -d "\n" >> $MAKE_DIR
+cat $1 | grep "LIBS_DIR" | cut -d ';' -f 2 >> $MAKE_DIR
+printf "\n" >> $MAKE_DIR
+
+echo 'NAME = ' | tr -d "\n" >> $MAKE_DIR
+cat $1 | grep "EXEC" | cut -d ';' -f 2 >> $MAKE_DIR
+printf "\n" >> $MAKE_DIR
+
+
+echo 'all:' | tr -d "\n" >> $MAKE_DIR
+printf "\t\t" | tr -d "\n" >> $MAKE_DIR
+echo '$(NAME)' >> $MAKE_DIR
+printf "\n" >> $MAKE_DIR
+
+echo '$(NAME):' | tr -d "\n" >> $MAKE_DIR
+printf "\t" | tr -d "\n" >> $MAKE_DIR
+echo '$(OBJ)' | tr -d "\n" >> $MAKE_DIR
+printf "\n\t\t" >> $MAKE_DIR
+echo '$(CC) -o $(NAME) $(OBJ) $(LDFLAGS) $(LIB)' | tr -d "\n" >> $MAKE_DIR
+printf "\n" >> $MAKE_DIR
+printf "\n" >> $MAKE_DIR
+
+echo 'clean:' >> $MAKE_DIR
+printf "\t\t" | tr -d "\n" >> $MAKE_DIR
+echo 'rm -rf $(OBJ)' >> $MAKE_DIR
+printf "\n" >> $MAKE_DIR
+
+echo 'fclean:' | tr -d "\n" >> $MAKE_DIR
+printf "\t\t" | tr -d "\n" >> $MAKE_DIR
+echo 'clean' >> $MAKE_DIR
+printf "\t\t" | tr -d "\n" >> $MAKE_DIR
+echo 'rm -rf $(NAME)' >> $MAKE_DIR
+printf "\n" >> $MAKE_DIR
+
+echo 're:' | tr -d "\n" >> $MAKE_DIR
+printf "\t\t" | tr -d "\n" >> $MAKE_DIR
+echo 'fclean all' >> $MAKE_DIR
+printf "\n" >> $MAKE_DIR
+
+echo '.PHONY:' | tr -d "\n" >> $MAKE_DIR
+printf "\t\t" | tr -d "\n" >> $MAKE_DIR
+echo 'all clean fclean all' >> $MAKE_DIR

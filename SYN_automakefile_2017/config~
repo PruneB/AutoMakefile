@@ -1,0 +1,9 @@
+analyze_mouse.c check_food.c destroy.c game.c init_button.c init_food_but.c init_food.c initialize.c init_win.c main.c manage_mouse.c;bla.h
+PROJECT_DIR;my_cook_2017
+SOURCES_DIR;src
+HEADERS_DIR;include
+LIBS_DIR;
+EXEC;palindrome
+CC;gcc
+CFLAGS;-Wall -extra
+LDFLAGS;-lc_graph_prog
